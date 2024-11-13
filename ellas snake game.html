@@ -1,0 +1,914 @@
+<html><head><base href="null"><title>Candy Snake Game</title><style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #FFE5F1 0%, #FFF0F5 100%);
+    overflow: hidden;
+    font-family: 'Arial', sans-serif;
+    color: #FF69B4;
+}
+
+.flower {
+    position: fixed;
+    width: 20px;
+    height: 20px;
+    z-index: -1;
+}
+
+.flower::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #FFB6C1;
+    border-radius: 50%;
+    box-shadow: 10px 10px #FFB6C1, 
+                -10px -10px #FFB6C1, 
+                10px -10px #FFB6C1, 
+                -10px 10px #FFB6C1;
+    animation: flowerSway 3s infinite ease-in-out;
+}
+
+.flower::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #FF69B4;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes flowerSway {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(5deg); }
+}
+
+.opening-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #FFE5F1 0%, #FFF0F5 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.game-title-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.candy-logo {
+    width: 80px;
+    height: 80px;
+    animation: spin 4s infinite linear;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.opening-title {
+    font-size: 48px;
+    color: #FF69B4;
+    text-shadow: 3px 3px 6px rgba(255, 105, 180, 0.5);
+}
+
+.game-subtitle {
+    font-size: 24px;
+    color: #FF69B4;
+    text-shadow: 2px 2px 4px rgba(255, 105, 180, 0.3);
+}
+
+.opening-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.opening-button {
+    padding: 15px 30px;
+    font-size: 20px;
+    background: #FF69B4;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 8px rgba(255, 105, 180, 0.3);
+}
+
+.opening-button:hover {
+    transform: scale(1.05);
+    background: #FF1493;
+}
+
+@keyframes titleBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+.game-content {
+    display: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+#gameContainer {
+    position: relative;
+    width: 384px; 
+    height: 384px; 
+    margin: 20px auto; /* Center horizontally with auto margins */
+}
+
+#gameCanvas {
+    width: 384px;
+    height: 384px;
+    border: 4px solid #FF69B4;
+    border-radius: 10px;
+    background: #FFF0F5;
+}
+
+.menu {
+    text-align: center;
+    margin: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.menu button {
+    padding: 10px 20px;
+    margin: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    background: #FF69B4;
+    border: none;
+    color: white;
+    border-radius: 25px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 8px rgba(255, 105, 180, 0.3);
+}
+
+.menu button:hover {
+    background: #FF1493;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(255, 105, 180, 0.4);
+}
+
+.menu button.active {
+    background: #FF1493;
+    transform: scale(1.05);
+}
+
+#score {
+    font-size: 24px;
+    margin: 10px;
+    color: #FF69B4;
+    text-shadow: 2px 2px 4px rgba(255, 105, 180, 0.3);
+}
+
+#level {
+    font-size: 20px;
+    color: #FF69B4;
+    margin: 10px;
+    text-shadow: 2px 2px 4px rgba(255, 105, 180, 0.3);
+}
+
+.game-over {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 240, 245, 0.95);
+    padding: 20px;
+    border-radius: 20px;
+    text-align: center;
+    display: none;
+    border: 4px solid #FF69B4;
+    box-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
+}
+
+.level-box {
+    position: absolute;
+    top: 50%;
+    right: -120px; /* Position it to the right of the game box */
+    transform: translateY(-50%);
+    width: 100px; /* Keep the small width */
+    background: rgba(255, 240, 245, 0.95);
+    border: 4px solid #FF69B4;
+    border-radius: 15px;
+    padding: 8px; 
+    box-shadow: 0 4px 8px rgba(255, 105, 180, 0.3);
+}
+
+.level-box h3 {
+    color: #FF69B4;
+    margin-bottom: 6px; 
+    text-align: center;
+    font-size: 14px; 
+}
+
+.level-info {
+    margin: 4px 0; 
+    padding: 4px; 
+    background: rgba(255, 105, 180, 0.1);
+    border-radius: 8px;
+    font-size: 11px; 
+}
+
+.level-info.current {
+    background: rgba(255, 105, 180, 0.3);
+    border: 2px solid #FF69B4;
+}
+
+.level-box-toggle {
+    position: absolute;
+    top: 50%;
+    right: -30px;
+    transform: translateY(-50%);
+    background: #FF69B4;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    display: none;
+}
+
+#saveGame, #loadGame {
+    background: #FF1493;
+    margin-left: 10px;
+}
+
+#saveGame:hover, #loadGame:hover {
+    background: #FF69B4;
+}
+
+.pause-overlay {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 240, 245, 0.9);
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 20px;
+    z-index: 1000;
+    border-radius: 10px;
+}
+
+.pause-overlay h2 {
+    color: #FF69B4;
+    font-size: 32px;
+    text-shadow: 2px 2px 4px rgba(255, 105, 180, 0.3);
+}
+
+.obstacle {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: #FF1493;
+    border-radius: 3px;
+}
+
+@media (max-width: 800px) {
+    .level-box {
+        right: -110px; 
+    }
+    
+    .level-box.hidden {
+        right: -120px; 
+    }
+
+    .level-box-toggle {
+        display: block;
+    }
+}
+
+@keyframes levelUp {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.floating-text {
+    position: fixed;
+    font-size: 24px;
+    color: rgba(255, 105, 180, 0.4); 
+    text-shadow: 2px 2px 4px rgba(255, 105, 180, 0.2);
+    z-index: -1; 
+    pointer-events: none;
+}
+
+@keyframes floatAnimation1 {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-15px) rotate(5deg); }
+}
+
+@keyframes floatAnimation2 {
+    0%, 100% { transform: translateY(0) rotate(5deg); }
+    50% { transform: translateY(-20px) rotate(-5deg); }
+}
+
+@keyframes floatAnimation3 {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(10deg); }
+}
+</style></head><body>
+<div class="opening-screen" id="openingScreen">
+    <div class="game-title-container">
+        <svg class="candy-logo" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="45" fill="#FF69B4"/>
+            <path d="M30,50 C30,30 70,30 70,50 C70,70 30,70 30,50" fill="#FFB6C1"/>
+            <circle cx="40" cy="45" r="5" fill="white"/>
+            <circle cx="60" cy="45" r="5" fill="white"/>
+            <path d="M40,60 C45,65 55,65 60,60" stroke="white" stroke-width="3" fill="none"/>
+        </svg>
+        <h1 class="opening-title">Ella's Sweet Candy Snake Game</h1>
+        <div class="game-subtitle">🍭 A Sweet Adventure 🍬</div>
+    </div>
+    <div class="opening-buttons">
+        <button class="opening-button" id="startClassicBtn">Classic Candy Mode</button>
+        <button class="opening-button" id="startCampaignBtn">Sweet Adventure Mode</button>
+        <button class="opening-button" id="startChallengeBtn">Challenge Mode</button>
+    </div>
+</div>
+<div class="game-content" id="gameContent">
+    <div class="menu">
+        <button id="classicMode">Classic Candy</button>
+        <button id="campaignMode">Sweet Adventure</button>
+        <button id="challengeMode">Challenge Mode</button>
+        <button id="saveGame">Save Game</button>
+        <button id="loadGame">Load Game</button>
+        <button id="pauseButton">Pause</button>
+    </div>
+    <div id="score">Score: 0</div>
+    <div id="level">Level: 1</div>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="384" height="384"></canvas>
+        <div class="game-over" id="gameOver">
+            <h2>Sugar Rush Over!</h2>
+            <p id="finalScore">Score: 0</p>
+            <button id="restartButton">Have Another Sweet!</button>
+        </div>
+        <button class="level-box-toggle" id="levelBoxToggle">↔</button>
+        <div class="level-box" id="levelBox">
+            <h3>Sweet Adventure Levels</h3>
+            <div id="levelList"></div>
+        </div>
+        <div class="pause-overlay" id="pauseOverlay">
+            <h2>Game Paused</h2>
+            <button id="resumeButton">Resume Game</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const GRID_SIZE = 16; // Adjusted for 384px / 24 cells
+const GRID_COUNT = 24; // New grid count for 384px canvas
+
+let snake, food, direction, gameLoop, score, gameMode, level, speed, obstacles;
+let specialFoodProbability = 0.3;
+let requiredScore = 5;
+let classicLevel = 1;
+let classicRequiredScore = 10;
+let isPaused = false;
+let isChallenge = false;
+
+class SnakePart {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+function createFlowerBackground() {
+    const flowerCount = 20;
+    const container = document.body;
+    
+    for (let i = 0; i < flowerCount; i++) {
+        const flower = document.createElement('div');
+        flower.className = 'flower';
+        flower.style.left = `${Math.random() * 100}vw`;
+        flower.style.top = `${Math.random() * 100}vh`;
+        flower.style.transform = `scale(${0.5 + Math.random()})`;
+        flower.style.animationDelay = `${Math.random() * 2}s`;
+        container.appendChild(flower);
+    }
+}
+
+function createFloatingTexts() {
+    const textCount = 15; 
+    const animations = ['floatAnimation1', 'floatAnimation2', 'floatAnimation3'];
+    
+    const existingTexts = document.querySelectorAll('.floating-text');
+    existingTexts.forEach(text => text.remove());
+    
+    for (let i = 0; i < textCount; i++) {
+        const floatingText = document.createElement('div');
+        floatingText.className = 'floating-text';
+        floatingText.textContent = 'felias';
+        
+        floatingText.style.left = `${(i % 5) * 20 + Math.random() * 10}vw`;
+        floatingText.style.top = `${Math.floor(i / 5) * 25 + Math.random() * 10}vh`;
+        
+        const randomAnim = animations[Math.floor(Math.random() * animations.length)];
+        floatingText.style.animation = `${randomAnim} ${3 + Math.random() * 2}s ease-in-out infinite`;
+        floatingText.style.animationDelay = `${Math.random() * 2}s`;
+        
+        floatingText.style.fontSize = `${16 + Math.random() * 8}px`;
+        floatingText.style.transform = `rotate(${Math.random() * 20 - 10}deg)`;
+        
+        document.body.appendChild(floatingText);
+    }
+}
+
+function initGame() {
+    snake = [
+        new SnakePart(5, 5)
+    ];
+    direction = 'right';
+    score = 0;
+    level = 1;
+    classicLevel = 1;
+    classicRequiredScore = 10;
+    speed = 150;
+    specialFoodProbability = 0.3;
+    requiredScore = 5;
+    obstacles = [];
+    if (gameMode === 'challenge') {
+        isChallenge = true;
+        speed = 100; // Faster base speed
+        specialFoodProbability = 0.5; // More special candies
+        createObstacles();
+    } else {
+        isChallenge = false;
+    }
+    createFood();
+    updateScore();
+    if (gameLoop) clearInterval(gameLoop);
+    gameLoop = setInterval(gameStep, speed);
+    document.getElementById('pauseOverlay').style.display = 'none';
+    isPaused = false;
+    document.getElementById('gameOver').style.display = 'none';
+}
+
+function createObstacles() {
+    obstacles = [];
+    const obstacleCount = level * 2; // Increases with level
+    for (let i = 0; i < obstacleCount; i++) {
+        obstacles.push({
+            x: Math.floor(Math.random() * GRID_COUNT),
+            y: Math.floor(Math.random() * GRID_COUNT)
+        });
+    }
+}
+
+function createFood() {
+    food = {
+        x: Math.floor(Math.random() * GRID_COUNT),
+        y: Math.floor(Math.random() * GRID_COUNT),
+        type: Math.random() < specialFoodProbability ? 'special' : 'normal'
+    };
+}
+
+function checkLevelUp() {
+    if (gameMode === 'challenge') {
+        if (score >= requiredScore) {
+            level++;
+            speed = Math.max(40, 100 - (level * 5)); // Faster speed reduction
+            specialFoodProbability = Math.min(0.8, 0.5 + (level * 0.05));
+            requiredScore += (8 + level);
+            createObstacles(); // New obstacles each level
+            clearInterval(gameLoop);
+            gameLoop = setInterval(gameStep, speed);
+            canvas.style.animation = 'none';
+            canvas.offsetHeight;
+            canvas.style.animation = 'levelUp 0.5s';
+        }
+    } else if (gameMode === 'campaign' && score >= requiredScore) {
+        level++;
+        speed = Math.max(50, 150 - (level * 10));
+        specialFoodProbability = Math.min(0.8, 0.3 + (level * 0.05));
+        requiredScore += (5 + level);
+        clearInterval(gameLoop);
+        gameLoop = setInterval(gameStep, speed);
+        canvas.style.animation = 'none';
+        canvas.offsetHeight;
+        canvas.style.animation = 'levelUp 0.5s';
+    } else if (gameMode === 'classic') {
+        if (score >= classicRequiredScore) {
+            classicLevel++;
+            speed = Math.max(50, 150 - (classicLevel * 8));
+            specialFoodProbability = Math.min(0.8, 0.3 + (classicLevel * 0.03));
+            classicRequiredScore = Math.floor(classicRequiredScore * 1.2); // 20% increase each level
+            clearInterval(gameLoop);
+            gameLoop = setInterval(gameStep, speed);
+            canvas.style.animation = 'none';
+            canvas.offsetHeight;
+            canvas.style.animation = 'levelUp 0.5s';
+        }
+    }
+}
+
+function gameStep() {
+    if (isPaused) return;
+    const head = {...snake[0]};
+    
+    switch(direction) {
+        case 'up': head.y--; break;
+        case 'down': head.y++; break;
+        case 'left': head.x--; break;
+        case 'right': head.x++; break;
+    }
+
+    if (head.x < 0 || head.x >= GRID_COUNT || head.y < 0 || head.y >= GRID_COUNT) {
+        gameOver();
+        return;
+    }
+
+    for (let part of snake) {
+        if (head.x === part.x && head.y === part.y) {
+            gameOver();
+            return;
+        }
+    }
+
+    if (isChallenge) {
+        for (let obstacle of obstacles) {
+            if (head.x === obstacle.x && head.y === obstacle.y) {
+                gameOver();
+                return;
+            }
+        }
+    }
+
+    snake.unshift(head);
+
+    if (head.x === food.x && head.y === food.y) {
+        if (food.type === 'special') {
+            score += 5;
+        } else {
+            score++;
+        }
+        
+        checkLevelUp();
+        updateScore();
+        createFood();
+    } else {
+        snake.pop();
+    }
+
+    draw();
+}
+
+function drawBarbieHead(x, y) {
+    const centerX = x * GRID_SIZE + GRID_SIZE/2;
+    const centerY = y * GRID_SIZE + GRID_SIZE/2;
+    const size = GRID_SIZE/2;
+
+    ctx.fillStyle = '#FFB6C1';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, size, 0, 2 * Math.PI);
+    ctx.fill();
+
+    ctx.fillStyle = '#4B0082';
+    ctx.beginPath();
+    ctx.ellipse(centerX - 3, centerY - 1, 2, 3, 0, 0, 2 * Math.PI);
+    ctx.ellipse(centerX + 3, centerY - 1, 2, 3, 0, 0, 2 * Math.PI);
+    ctx.fill();
+
+    ctx.strokeStyle = '#4B0082';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(centerX - 4, centerY - 3);
+    ctx.lineTo(centerX - 5, centerY - 4);
+    ctx.moveTo(centerX - 2, centerY - 4);
+    ctx.lineTo(centerX - 2, centerY - 5);
+    ctx.moveTo(centerX, centerY - 3);
+    ctx.lineTo(centerX + 1, centerY - 4);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#FF1493';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY + 1, 3, 0.2, 2.9, false);
+    ctx.stroke();
+
+    ctx.fillStyle = '#FF69B4';
+    ctx.globalAlpha = 0.3;
+    ctx.beginPath();
+    ctx.arc(centerX - 5, centerY + 2, 2, 0, 2 * Math.PI);
+    ctx.arc(centerX + 5, centerY + 2, 2, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.globalAlpha = 1.0;
+}
+
+function draw() {
+    ctx.fillStyle = '#FFF0F5';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (gameMode === 'campaign') {
+        const progress = (score / requiredScore) * canvas.width;
+        ctx.fillStyle = 'rgba(255, 105, 180, 0.2)';
+        ctx.fillRect(0, 0, progress, 4);
+    } else if (gameMode === 'classic') {
+        const progress = (score / classicRequiredScore) * canvas.width;
+        ctx.fillStyle = 'rgba(255, 105, 180, 0.2)';
+        ctx.fillRect(0, 0, progress, 4);
+    }
+
+    snake.forEach((part, index) => {
+        if (index === 0) {
+            drawBarbieHead(part.x, part.y);
+        } else {
+            ctx.fillStyle = '#FFB6C1';
+            ctx.beginPath();
+            ctx.arc(
+                part.x * GRID_SIZE + GRID_SIZE/2,
+                part.y * GRID_SIZE + GRID_SIZE/2,
+                GRID_SIZE/2 - 2,
+                0,
+                2 * Math.PI
+            );
+            ctx.fill();
+        }
+    });
+
+    drawCandy(food.x, food.y, food.type);
+
+    if (isChallenge) {
+        obstacles.forEach(obstacle => {
+            ctx.fillStyle = '#FF1493';
+            ctx.fillRect(
+                obstacle.x * GRID_SIZE,
+                obstacle.y * GRID_SIZE,
+                GRID_SIZE,
+                GRID_SIZE
+            );
+        });
+    }
+}
+
+function updateScore() {
+    if (gameMode === 'campaign') {
+        document.getElementById('score').textContent = `Candies: ${score}/${requiredScore}`;
+        document.getElementById('level').textContent = `Sweet Level: ${level}`;
+    } else if (gameMode === 'classic') {
+        document.getElementById('score').textContent = `Candies: ${score}/${classicRequiredScore}`;
+        document.getElementById('level').textContent = `Sweet Level: ${classicLevel}`;
+    }
+    document.getElementById('level').style.display = 'block';
+}
+
+function drawCandy(x, y, type) {
+    const centerX = x * GRID_SIZE + GRID_SIZE/2;
+    const centerY = y * GRID_SIZE + GRID_SIZE/2;
+    const size = GRID_SIZE/2 - 2;
+
+    ctx.beginPath();
+    if (type === 'special') {
+        ctx.fillStyle = '#FF1493';
+        ctx.arc(centerX, centerY - 2, size, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.fillStyle = '#FFF';
+        ctx.fillRect(centerX - 2, centerY, 4, size * 1.2);
+    } else {
+        ctx.fillStyle = '#FF69B4';
+        ctx.fillRect(centerX - size, centerY - size, size * 2, size * 2);
+        ctx.strokeStyle = '#FFF';
+        ctx.lineWidth = 2;
+        ctx.moveTo(centerX - size, centerY);
+        ctx.lineTo(centerX + size, centerY);
+        ctx.moveTo(centerX, centerY - size);
+        ctx.lineTo(centerX, centerY + size);
+        ctx.stroke();
+    }
+}
+
+function saveGame() {
+    const gameState = {
+        gameMode,
+        score,
+        level,
+        classicLevel,
+        snake,
+        direction,
+        food,
+        specialFoodProbability,
+        requiredScore,
+        classicRequiredScore,
+        speed,
+        obstacles
+    };
+    localStorage.setItem('candySnakeGameSave', JSON.stringify(gameState));
+}
+
+function loadGame() {
+    const savedState = localStorage.getItem('candySnakeGameSave');
+    if (savedState) {
+        const state = JSON.parse(savedState);
+        gameMode = state.gameMode;
+        score = state.score;
+        level = state.level;
+        classicLevel = state.classicLevel;
+        snake = state.snake.map(part => new SnakePart(part.x, part.y));
+        direction = state.direction;
+        food = state.food;
+        specialFoodProbability = state.specialFoodProbability;
+        requiredScore = state.requiredScore;
+        classicRequiredScore = state.classicRequiredScore;
+        speed = state.speed;
+        obstacles = state.obstacles;
+        
+        clearInterval(gameLoop);
+        gameLoop = setInterval(gameStep, speed);
+        updateScore();
+        updateLevelBox();
+        return true;
+    }
+    return false;
+}
+
+function gameOver() {
+    clearInterval(gameLoop);
+    saveGame(); 
+    document.getElementById('gameOver').style.display = 'block';
+    document.getElementById('finalScore').textContent = `Total Candies: ${score}`;
+}
+
+function updateLevelBox() {
+    const levelBox = document.getElementById('levelBox');
+    if (gameMode === 'classic') {
+        levelBox.style.display = 'block';
+        document.getElementById('levelBoxToggle').style.display = 'block';
+        
+        const levelList = document.getElementById('levelList');
+        levelList.innerHTML = '<h3>Classic Candy Levels</h3>';
+        
+        for (let i = Math.max(1, classicLevel - 1); i <= classicLevel + 1; i++) {
+            const levelInfo = document.createElement('div');
+            levelInfo.className = `level-info${i === classicLevel ? ' current' : ''}`;
+            const nextLevelScore = Math.floor(classicRequiredScore * Math.pow(1.2, i - classicLevel));
+            const specialProb = Math.min(0.8, 0.3 + (i * 0.03)).toFixed(2);
+            
+            levelInfo.innerHTML = `
+                <strong>Level ${i}</strong><br>
+                Required: ${nextLevelScore} candies<br>
+                Special Candy: ${specialProb * 100}%
+            `;
+            levelList.appendChild(levelInfo);
+        }
+    } else if (gameMode === 'campaign') {
+        levelBox.style.display = 'block';
+        document.getElementById('levelBoxToggle').style.display = 'block';
+        
+        const levelList = document.getElementById('levelList');
+        levelList.innerHTML = '';
+        
+        for (let i = 1; i <= Math.max(5, level + 2); i++) {
+            const levelInfo = document.createElement('div');
+            levelInfo.className = `level-info${i === level ? ' current' : ''}`;
+            const requiredScoreForLevel = i === 1 ? 5 : (5 + (i-1) * 5);
+            const specialProb = Math.min(0.8, 0.3 + (i * 0.05)).toFixed(2);
+            
+            levelInfo.innerHTML = `
+                <strong>Level ${i}</strong><br>
+                Required: ${requiredScoreForLevel} candies<br>
+                Special Candy: ${specialProb * 100}%
+            `;
+            levelList.appendChild(levelInfo);
+        }
+    } else if (gameMode === 'challenge') {
+        levelBox.style.display = 'block';
+        document.getElementById('levelBoxToggle').style.display = 'block';
+
+        const levelList = document.getElementById('levelList');
+        levelList.innerHTML = `<h3>Challenge Level: ${level}</h3>`;
+    }
+}
+
+function startGame(mode) {
+    document.getElementById('openingScreen').style.display = 'none';
+    document.getElementById('gameContent').style.display = 'block';
+    gameMode = mode;
+    initGame();
+    updateLevelBox();
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        isPaused = !isPaused;
+        document.getElementById('pauseOverlay').style.display = isPaused ? 'flex' : 'none';
+    } else {
+        switch(e.key) {
+            case 'ArrowUp':
+                if (direction !== 'down') direction = 'up';
+                break;
+            case 'ArrowDown':
+                if (direction !== 'up') direction = 'down';
+                break;
+            case 'ArrowLeft':
+                if (direction !== 'right') direction = 'left';
+                break;
+            case 'ArrowRight':
+                if (direction !== 'left') direction = 'right';
+                break;
+        }
+    }
+});
+
+document.getElementById('startClassicBtn').addEventListener('click', () => {
+    startGame('classic');
+});
+
+document.getElementById('startCampaignBtn').addEventListener('click', () => {
+    startGame('campaign');
+});
+
+document.getElementById('startChallengeBtn').addEventListener('click', () => {
+    startGame('challenge');
+});
+
+document.getElementById('classicMode').addEventListener('click', () => {
+    gameMode = 'classic';
+    initGame();
+    updateLevelBox();
+});
+
+document.getElementById('campaignMode').addEventListener('click', () => {
+    gameMode = 'campaign';
+    initGame();
+    updateLevelBox();
+});
+
+document.getElementById('challengeMode').addEventListener('click', () => {
+    gameMode = 'challenge';
+    initGame();
+    updateLevelBox();
+});
+
+document.getElementById('pauseButton').addEventListener('click', () => {
+    isPaused = true;
+    document.getElementById('pauseOverlay').style.display = 'flex';
+});
+
+document.getElementById('resumeButton').addEventListener('click', () => {
+    isPaused = false;
+    document.getElementById('pauseOverlay').style.display = 'none';
+});
+
+document.getElementById('saveGame').addEventListener('click', () => {
+    saveGame();
+    alert('Game saved successfully! 🍬');
+});
+
+document.getElementById('loadGame').addEventListener('click', () => {
+    if (loadGame()) {
+        document.getElementById('openingScreen').style.display = 'none';
+        document.getElementById('gameContent').style.display = 'block';
+        alert('Game loaded successfully! 🍭');
+    } else {
+        alert('No saved game found! 😢');
+    }
+});
+
+document.getElementById('restartButton').addEventListener('click', () => {
+    initGame();
+});
+
+// Initialize but don't start the game automatically
+gameMode = 'classic';
+createFlowerBackground();
+createFloatingTexts(); 
+</script></body></html>
